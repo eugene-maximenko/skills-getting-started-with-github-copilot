@@ -59,7 +59,46 @@ document.addEventListener("DOMContentLoaded", () => {
           ul.className = "participants-list";
           participants.forEach((p) => {
             const li = document.createElement("li");
-            li.textContent = p;
+
+            const span = document.createElement("span");
+            span.className = "participant-email";
+            span.textContent = p;
+
+            const btn = document.createElement("button");
+            btn.className = "delete-btn";
+            btn.title = "Unregister participant";
+            btn.innerHTML = "✖";
+
+            btn.addEventListener("click", async (e) => {
+              e.preventDefault();
+              try {
+                const resp = await fetch(
+                  `/activities/${encodeURIComponent(name)}/unregister?email=${encodeURIComponent(p)}`,
+                  { method: "DELETE" }
+                );
+                const res = await resp.json();
+                if (resp.ok) {
+                  messageDiv.textContent = res.message;
+                  messageDiv.className = "success";
+                  messageDiv.classList.remove("hidden");
+                  setTimeout(() => messageDiv.classList.add("hidden"), 4000);
+                  // Refresh activities to update participants list
+                  fetchActivities();
+                } else {
+                  messageDiv.textContent = res.detail || "Failed to unregister";
+                  messageDiv.className = "error";
+                  messageDiv.classList.remove("hidden");
+                }
+              } catch (err) {
+                console.error("Unregister error:", err);
+                messageDiv.textContent = "Failed to unregister. Try again.";
+                messageDiv.className = "error";
+                messageDiv.classList.remove("hidden");
+              }
+            });
+
+            li.appendChild(span);
+            li.appendChild(btn);
             ul.appendChild(li);
           });
           participantsDiv.appendChild(ul);
